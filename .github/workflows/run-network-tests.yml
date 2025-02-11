@@ -141,7 +141,7 @@ jobs:
         if: steps.check_files.outputs.files_exists == 'false'
 
       - name: Save joystream/node image to Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.compute_shasum.outputs.shasum }}-joystream-node-docker-image.tar.gz
           path: joystream-node-docker-image.tar.gz
@@ -152,7 +152,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        scenario: ['full', 'setupNewChain', 'setupNewChainMultiStorage', 'bonding', 'storageSync']
+        scenario: ['full', 'setupNewChain', 'setupNewChainMultiStorage', 'bonding', 'storage']
         include:
           - scenario: 'full'
             no_storage: 'false'
@@ -160,13 +160,15 @@ jobs:
             no_storage: 'true'
           - scenario: 'setupNewChainMultiStorage'
             no_storage: 'true'
+          - scenario: 'storage'
+            cleanup_interval: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '18.x'
       - name: Get artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build_images.outputs.use_artifact }}
       - name: Install artifacts
@@ -182,4 +184,5 @@ jobs:
         run: |
           export RUNTIME=${{ needs.build_images.outputs.runtime }}
           export NO_STORAGE=${{ matrix.no_storage }}
+          export CLEANUP_INTERVAL=${{ matrix.cleanup_interval }}
           tests/network-tests/run-tests.sh ${{ matrix.scenario }}
